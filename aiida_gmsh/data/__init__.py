@@ -16,7 +16,6 @@ cmdline_options = {
     Optional('1'): bool,
     Optional('2'): bool,
     Optional('3'): bool,
-    Optional('pid'): bool,
     Optional('format', default='auto'): str,
     Optional('order', default=1): int,
     Optional('o'): str,
@@ -81,15 +80,16 @@ class GmshParameters(Dict):  # pylint: disable=too-many-ancestors
                 parameters.append("-"+str(key))
                 parameters.append(value)
 
+        # default output filename
+        parameters.append("-o")
+        parameters.append("mesh.msh")
+
         return [str(p) for p in parameters]
 
     def __str__(self):
         """String representation of node.
 
         Append values of dictionary to usual representation. E.g.::
-
-            uuid: b416cbee-24e8-47a8-8c11-6d668770158b (pk: 590)
-            {'ignore-case': True}
 
         """
         string = super().__str__()
