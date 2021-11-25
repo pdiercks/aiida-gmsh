@@ -40,7 +40,6 @@ class GmshParser(Parser):
         :returns: an exit code, if parsing fails (or nothing if parsing succeeds)
         """
         retrieved_temporary_folder = pathlib.Path(kwargs['retrieved_temporary_folder'])
-        breakpoint()
         output_filename = self.node.get_option('output_filename')
         output_filepath = retrieved_temporary_folder / output_filename
 
