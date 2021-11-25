@@ -30,8 +30,6 @@ class GmshCalculation(CalcJob):
 
         # set default values for AiiDA options
         spec.inputs['metadata']['options']['output_filename'].valid_type = str
-        # TODO set default output_filename to geofile.with_suffix('.msh') if option "-o fname.msh" not given
-        # TODO set default output_filename to fname.msh if option "-o fname.msh" is included in GmshParameters
         spec.inputs['metadata']['options']['output_filename'].default = 'mesh.msh'
         spec.inputs['metadata']['options']['resources'].default = {
             'num_machines': 1,
@@ -55,11 +53,6 @@ class GmshCalculation(CalcJob):
             geofile=self.inputs.geofile.filename
         )
         codeinfo.code_uuid = self.inputs.code.uuid
-        # TODO have to use other than stdout ouptut???
-
-        # FIXME gmsh does not write contents of .msh to stdout
-        # however, if commented out 'mesh.msh' is not retrieved by the Parser
-        # codeinfo.stdout_name = self.metadata.options.output_filename
         codeinfo.withmpi = self.inputs.metadata.options.withmpi
 
         # Prepare a `CalcInfo` to be returned to the engine
@@ -74,11 +67,6 @@ class GmshCalculation(CalcJob):
         # use the `retrieve_list`, the output file will be stored twice; once in the `retrieved` output node and once in
         # the `mshfile` output node. By using the `retrieve_temporary_list`, the output file will not be permanently
         # stored in the `retrieved` output node and preventing duplication.
-        if "-o" in codeinfo.cmdline_params:
-            output_filename_index = codeinfo.cmdline_params.index("-o") + 1
-            calcinfo.retrieve_temporary_list = [codeinfo.cmdline_params[output_filename_index]]
-        else:
-            calcinfo.retrieve_temporary_list = [self.metadata.options.output_filename]
+        calcinfo.retrieve_temporary_list = [self.metadata.options.output_filename]
 
-        breakpoint()
         return calcinfo
