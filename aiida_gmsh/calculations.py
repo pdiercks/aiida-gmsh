@@ -57,15 +57,14 @@ class GmshCalculation(CalcJob):
         """
         codeinfo = datastructures.CodeInfo()
         codeinfo.cmdline_params = self.inputs.parameters.cmdline_params(
-            geofile=self.inputs.geofile.filename,
-            mshfile=self.metadata.options.output_filename
+            geofile=self.inputs.geofile.filename
         )
         codeinfo.code_uuid = self.inputs.code.uuid
         # TODO have to use other than stdout ouptut???
 
         # FIXME gmsh does not write contents of .msh to stdout
         # however, if commented out 'mesh.msh' is not retrieved by the Parser
-        codeinfo.stdout_name = self.metadata.options.output_filename
+        # codeinfo.stdout_name = self.metadata.options.output_filename
         codeinfo.withmpi = self.inputs.metadata.options.withmpi
 
         # Prepare a `CalcInfo` to be returned to the engine

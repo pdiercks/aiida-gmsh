@@ -62,28 +62,24 @@ class GmshParameters(Dict):  # pylint: disable=too-many-ancestors
         """
         return GmshParameters.schema(parameters_dict)
 
-    def cmdline_params(self, geofile, mshfile):
+    def cmdline_params(self, geofile):
         """Synthesize command line parameters.
 
-        e.g. ['geofile', '-2', '-o', 'mshfilename']
+        e.g. ['geofile', '-2']
 
         :param geofile: Name of geo file
         :param type geofile: str
-        :param mshfile: Name of msh file
-        :param type mshfile: str
 
         """
-        parameters = []
-        parameters += [geofile]
+        parameters = [geofile]
 
         pm_dict = self.get_dict()
         for key, value in pm_dict.items():
             if isinstance(value, bool) and value:
-                parameters.append(f"-{key}")
+                parameters.append("-"+str(key))
             elif isinstance(value, (int, str)):
-                parameters.append(f"-{key} {value}")
-
-        parameters.append(f"-o {mshfile}")
+                parameters.append("-"+str(key))
+                parameters.append(value)
 
         return [str(p) for p in parameters]
 
