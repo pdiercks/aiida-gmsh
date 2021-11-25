@@ -23,9 +23,7 @@ def test_run(gmsh_code):
 
     # Prepare input parameters
     GmshParameters = DataFactory('gmsh')
-    parameters = GmshParameters({'2': True, 'o': 'mesh.msh'}) # works
-    # parameters = GmshParameters({'2': True}) # will fail
-    # parameters = GmshParameters({'2': True, 'o': 'mymesh.msh'}) # will fail
+    parameters = GmshParameters({'2': True})
 
     SinglefileData = DataFactory('singlefile')
     geofile = SinglefileData(file=path.join(INPUT_DIR, 'unit_square.geo'))
