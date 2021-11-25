@@ -26,10 +26,12 @@ class GmshCalculation(CalcJob):
         super().define(spec)
         spec.input('geofile', valid_type=SinglefileData, help='The .geo file to process.')
         spec.input('parameters', valid_type=GmshParameters, help='Command line parameters for gmsh')
-        spec.output('mshfile', valid_type=SinglefileData, required=True, help='The output file containing the generated mesh.')
+        spec.output('mshfile', valid_type=SinglefileData, help='The output file containing the generated mesh.')
 
         # set default values for AiiDA options
         spec.inputs['metadata']['options']['output_filename'].valid_type = str
+        # TODO set default output_filename to geofile.with_suffix('.msh') if option "-o fname.msh" not given
+        # TODO set default output_filename to fname.msh if option "-o fname.msh" is included in GmshParameters
         spec.inputs['metadata']['options']['output_filename'].default = 'mesh.msh'
         spec.inputs['metadata']['options']['resources'].default = {
             'num_machines': 1,
@@ -37,14 +39,6 @@ class GmshCalculation(CalcJob):
         }
         spec.inputs['metadata']['options']['parser_name'].default = 'gmsh'
 
-        # TODO generalize output specification
-        # output depends on Gmsh's cmdline_options ("-", "-o", "-merge") 
-        # "-": depends on commands given in .geo, if Mesh is missing nothing happens ...
-        # "-o": specify msh filename
-        # "-2": make 2d mesh, but "-o" is omitted, use basename of geofile
-        # "-merge": merge next files ...
-
-        # TODO gmsh exit codes
         spec.exit_code(300, 'ERROR_MISSING_OUTPUT_FILES', message='Calculation did not produce all expected output files.')
 
 
@@ -80,6 +74,11 @@ class GmshCalculation(CalcJob):
         # use the `retrieve_list`, the output file will be stored twice; once in the `retrieved` output node and once in
         # the `mshfile` output node. By using the `retrieve_temporary_list`, the output file will not be permanently
         # stored in the `retrieved` output node and preventing duplication.
-        calcinfo.retrieve_temporary_list = [self.metadata.options.output_filename]
+        if "-o" in codeinfo.cmdline_params:
+            output_filename_index = codeinfo.cmdline_params.index("-o") + 1
+            calcinfo.retrieve_temporary_list = [codeinfo.cmdline_params[output_filename_index]]
+        else:
+            calcinfo.retrieve_temporary_list = [self.metadata.options.output_filename]
 
+        breakpoint()
         return calcinfo
