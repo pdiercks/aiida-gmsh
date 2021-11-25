@@ -26,10 +26,11 @@ class GmshCalculation(CalcJob):
         super().define(spec)
         spec.input('geofile', valid_type=SinglefileData, help='The .geo file to process.')
         spec.input('parameters', valid_type=GmshParameters, help='Command line parameters for gmsh')
-        spec.input('metadata.options.output_filename', valid_type=str, default='mesh.msh')
         spec.output('mshfile', valid_type=SinglefileData, required=True, help='The output file containing the generated mesh.')
 
         # set default values for AiiDA options
+        spec.inputs['metadata']['options']['output_filename'].valid_type = str
+        spec.inputs['metadata']['options']['output_filename'].default = 'mesh.msh'
         spec.inputs['metadata']['options']['resources'].default = {
             'num_machines': 1,
             'num_mpiprocs_per_machine': 1,
@@ -73,6 +74,12 @@ class GmshCalculation(CalcJob):
         calcinfo.local_copy_list = [
             (self.inputs.geofile.uuid, self.inputs.geofile.filename, self.inputs.geofile.filename),
         ]
-        calcinfo.retrieve_list = [self.metadata.options.output_filename]
+
+        # Add the output file to the retrieved temporary list. The reason for using `retrieve_temporary_list` instead of
+        # `retrieve_list` is that the parser will be reporting the output file as a `SinglefileData` output node. If we
+        # use the `retrieve_list`, the output file will be stored twice; once in the `retrieved` output node and once in
+        # the `mshfile` output node. By using the `retrieve_temporary_list`, the output file will not be permanently
+        # stored in the `retrieved` output node and preventing duplication.
+        calcinfo.retrieve_temporary_list = [self.metadata.options.output_filename]
 
         return calcinfo

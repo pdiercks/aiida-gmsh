@@ -4,6 +4,8 @@ Parsers provided by aiida_gmsh.
 
 Register parsers via the "aiida.parsers" entry point in setup.json.
 """
+import pathlib
+
 from aiida.engine import ExitCode
 from aiida.parsers.parser import Parser
 from aiida.plugins import CalculationFactory
@@ -31,29 +33,23 @@ class GmshParser(Parser):
         if not issubclass(node.process_class, GmshCalculation):
             raise exceptions.ParsingError('Can only parse GmshCalculation')
 
-    def parse(self, **kwargs):
+    def parse(self, retrieved_temporary_folder, **kwargs):
         """
         Parse outputs, store results in database.
 
         :returns: an exit code, if parsing fails (or nothing if parsing succeeds)
         """
+        retrieved_temporary_folder = pathlib.Path(kwargs['retrieved_temporary_folder'])
         output_filename = self.node.get_option('output_filename')
+        output_filepath = retrieved_temporary_folder / output_filename
 
-        # Check that folder content is as expected
-        # FIXME output .msh is not retrieved 
-        files_retrieved = self.retrieved.list_object_names()
-        files_expected = [output_filename]
-        # Note: set(A) <= set(B) checks whether A is a subset of B
-        if not set(files_expected) <= set(files_retrieved):
-            breakpoint()
-            self.logger.error("Found files '{}', expected to find '{}'".format(
-                files_retrieved, files_expected))
+        if not output_filepath.exists():
+            self.logger.error(
+                f'required output file `{output_filename}` was not present in the temporary retrieved folder.'
+            )
             return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
 
-        # add output file
-        self.logger.info("Parsing '{}'".format(output_filename))
-        with self.retrieved.open(output_filename, 'rb') as handle:
-            output_node = SinglefileData(file=handle)
-        self.out('mshfile', output_node)
+        with output_filepath.open('rb') as handle:
+            mshfile = SinglefileData(file=handle)
 
-        return ExitCode(0)
+        self.out('mshfile', mshfile)
